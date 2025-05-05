@@ -246,7 +246,7 @@
                                     {% else %}
                                     <div class="product__price">₹ {{color.product.offer_price}}
                                         <a href="" class="text-muted text-decoration-line-through"
-                                            style="text-decoration: line-through;">{{color.product.price}}</a>
+                                            style="text-decoration: line-through;">{{color.product.price|floatformat:0 }}</a>
                                     </div>
                                     {% endif %}
                                 </div>

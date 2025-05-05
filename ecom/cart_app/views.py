@@ -571,7 +571,6 @@ def place_order(request):
                     product_size.save()
 
                 cart.delete()
-
                 keys_to_delete = [
                     "coupon_applied",
                     "coupon_name",
@@ -902,7 +901,6 @@ def view_status(request, order_id):
             return redirect("index")
     else:
         return redirect("login")
-
 
 def request_cancel_order(request, order_id):
     print(order_id)

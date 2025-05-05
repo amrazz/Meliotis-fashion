@@ -1,5 +1,33 @@
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 *.pyc
 
-__pycache__/
-*.pyc
+# Virtual environment
+env/
+venv/
+ENV/
+env.bak/
+*.env
+
+# VS Code
+.vscode/
+
+# Django stuff
+*.log
+local_settings.py
+media/
+staticfiles/
+
+# Pytest
+.cache/
+
+# Migrations (optional – only if you want to ignore them)
+# **/*/migrations/
+# !**/migrations/__init__.py
+
+# MacOS and Windows system files
+.DS_Store
+Thumbs.db

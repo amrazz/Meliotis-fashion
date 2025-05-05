@@ -59,103 +59,84 @@ def admin_login(request):
         messages.error(request, str(e))
         return redirect("admin_login")
 
-
 @never_cache
 def dashboard(request):
-    if request.user.is_superuser:
-        month = request.GET.get("month")
-        if month:
-            year, month = map(int, month.split("-"))
-            ordered_items = OrderItem.objects.filter(
-                status="Delivered", created_at__year=year, created_at__month=month
-            )
-        else:
-            ordered_items = OrderItem.objects.filter(status="Delivered")
-
-        delivered_orders_per_day = (
-            ordered_items.annotate(delivery_date=TruncDate("created_at"))
-            .values("delivery_date")
-            .annotate(total_orders=Count("id"))
-            .order_by("delivery_date")
-        )
-
-        delivery_data = list(
-            delivered_orders_per_day.values("delivery_date", "total_orders")
-        )
-
-        if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            response_data = {
-                "labels": [
-                    item["delivery_date"].strftime("%Y-%m-%d") for item in delivery_data
-                ],
-                "data": [item["total_orders"] for item in delivery_data],
-            }
-            return JsonResponse(response_data)
-
-        best_seller = (
-            ProductColorImage.objects.filter(
-                is_deleted=False,
-                product_order__in=ordered_items,
-            )
-            .annotate(order_count=Count("product_order"))
-            .order_by("-order_count")
-        )
-        top_10_products = best_seller.distinct()[:10]
-
-        start_date = datetime.strptime("2024-01-01", "%Y-%m-%d")
-        end_date = datetime.strptime("2024-12-31", "%Y-%m-%d")
-        orders_per_year = OrderItem.objects.filter(
-            status="Delivered", created_at__range=(start_date, end_date)
-        )
-        orders_per_month = OrderItem.objects.filter(
-            status="Delivered", created_at__range=("2024-05-01", "2024-05-31")
-        )
-        total_sum_per_year = orders_per_year.aggregate(total_price=Sum("order__total"))[
-            "total_price"
-        ]
-        total_sum_per_month = orders_per_month.aggregate(
-            total_price=Sum("order__total")
-        )["total_price"]
-
-        top_3_category = (
-            Product.objects.filter(
-                color_image__in=top_10_products,
-                is_deleted=False,
-                color_image__product_order__in=ordered_items,
-            )
-            .values("category__name", "category__cat_image")
-            .annotate(category_count=Count("category"))
-            .order_by("-category_count")[:3]
-        )
-
-        category_count = [item["category_count"] for item in top_3_category]
-        category_sum = sum(category_count)
-        top_5_brand = (
-            best_seller.values("product__brand__name")
-            .annotate(brand_count=Count("product__brand__id"))
-            .order_by("-brand_count")
-            .distinct()[:5]
-        )
-        brand_count = top_5_brand.count()
-        brand_sum = sum(brand_count for brand in top_5_brand)
-
-        context = {
-            "delivered_orders_per_day": delivery_data,
-            "total_sum_per_month": total_sum_per_month,
-            "top_10_products": top_10_products,
-            "top_3_category": top_3_category,
-            "total_sum": total_sum_per_year,
-            "category_count": category_count,
-            "category_sum": category_sum,
-            "top_5_brand": top_5_brand,
-            "brand_count": brand_count,
-            "brand_sum": brand_sum,
-        }
-        return render(request, "dashboard.html", context)
-    else:
+    if not request.user.is_superuser:
         messages.error(request, "Only admins are allowed.")
         return redirect("admin_login")
 
+    # Get the selected year and month from the request
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+    
+    if year and month:
+        month_num = datetime.strptime(month, "%B").month
+        ordered_items = OrderItem.objects.filter(status="Delivered", created_at__year=int(year), created_at__month=month_num)
+    else:
+        ordered_items = OrderItem.objects.filter(status="Delivered")
+
+    delivered_orders_per_day = ordered_items.annotate(delivery_date=TruncDate("created_at")) \
+        .values("delivery_date") \
+        .annotate(total_orders=Count("id")) \
+        .order_by("delivery_date")
+    
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        delivery_data = list(delivered_orders_per_day)
+        response_data = {
+            "labels": [item["delivery_date"].strftime("%Y-%m-%d") for item in delivery_data],
+            "data": [item["total_orders"] for item in delivery_data],
+        }
+        return JsonResponse(response_data)
+    
+    # Top 10 products
+    best_seller = ProductColorImage.objects.filter(
+        is_deleted=False,
+        product_order__in=ordered_items
+    ).annotate(order_count=Count("product_order")).order_by("-order_count")
+    
+    top_10_products = best_seller.distinct()[:10]
+    
+    # Yearly and monthly earnings
+    total_sum_per_year = OrderItem.objects.filter(
+        status="Delivered", 
+        created_at__year=datetime.now().year
+    ).aggregate(total_price=Sum("order__total"))["total_price"]
+    
+    total_sum_per_month = OrderItem.objects.filter(
+        status="Delivered",
+        created_at__year=datetime.now().year,
+        created_at__month=datetime.now().month
+    ).aggregate(total_price=Sum("order__total"))["total_price"]
+
+    # Top 3 categories
+    top_3_category = Product.objects.filter(
+        color_image__in=top_10_products,
+        is_deleted=False
+    ).values("category__name") \
+    .annotate(category_count=Count("category")) \
+    .order_by("-category_count")[:3]
+
+    # Top 5 brands
+    top_5_brand = best_seller.values("product__brand__name") \
+        .annotate(brand_count=Count("product__brand__id")) \
+        .order_by("-brand_count")[:5]
+        
+    years = range(2020, 2026)
+    months = "January,February,March,April,May,June,July,August,September,October,November,December"
+
+    context = {
+        "delivered_orders_per_day": delivered_orders_per_day,
+        "total_sum_per_month": total_sum_per_month,
+        "top_10_products": top_10_products,
+        "top_3_category": top_3_category,
+        "total_sum": total_sum_per_year,
+        "top_5_brand": top_5_brand,
+        "years": years,
+        "months": months.split(','),
+        "selected_year": year,
+        "selected_month": month,
+    }
+    return render(request, "dashboard.html", context)
 
 @never_cache
 def admin_logout(request):

@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-iy*7oiv=1()na$^(2vj_@$+qc_am^ogz#yh+uk+&g5h9*zf!y5"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 ALLOWED_HOSTS = [
@@ -33,6 +36,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "16.170.208.82",
     "localhost",
+    "127.0.0.1",
 ]
 
 
@@ -121,9 +125,9 @@ WSGI_APPLICATION = "ecom.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "database",
-        "USER": "admin",
-        "PASSWORD": "amraz",
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABSE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
         "HOST": "localhost",
         "PORT": "5432",
     }
@@ -184,8 +188,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "meliotis100@gmail.com"
-EMAIL_HOST_PASSWORD = "nxcc oovf whmp zeyi"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
@@ -199,8 +203,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 
-RAZOR_KEY_ID = "rzp_test_i5YPKuq85Rzcc0"
-RAZOR_KEY_SECRET = "8Oy3wO9MkuDhIfDcKurtY0IW"
+RAZOR_KEY_ID = os.getenv("RAZOR_KEY_ID")
+RAZOR_KEY_SECRET = os.getenv("RAZOR_KEY_SECRET")
+
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 

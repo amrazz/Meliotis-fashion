@@ -3,7 +3,7 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="container-fluid">
-  <!--  Row 1 -->
+  <!-- Row 1 -->
   <div class="row">
     <div class="col-lg-8 d-flex align-items-stretch">
         <div class="card w-100">
@@ -12,20 +12,36 @@
                     <div class="mb-3 mb-sm-0">
                         <h5 class="card-title fw-semibold">Sales Overview</h5>
                     </div>
-                    <div>
-                         <select class="form-select" id="monthSelector" onchange="filterByMonth()">
-                            <option value="">Select Month</option>
-                            <option value="2024-03" {% if selected_month == '2024-03' %}selected{% endif %}>March 2024</option>
-                            <option value="2024-04" {% if selected_month == '2024-04' %}selected{% endif %}>April 2024</option>
-                            <option value="2024-05" {% if selected_month == '2024-05' %}selected{% endif %}>May 2024</option>
-                            <option value="2024-06" {% if selected_month == '2024-06' %}selected{% endif %}>June 2024</option>
-                            <!-- Add more months as needed -->
-                        </select>
-                    </div>
+                    <!-- Form for Year and Month Selection -->
+                    <form action="" method="GET" class="d-flex flex-row justify-content-between">
+                        <div>
+                            <select class="form-select" name="year" id="yearSelector">
+                                <option value="">Select Year</option>
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <select class="form-select" name="month" id="monthSelector">
+                                <option value="">Select Month</option>
+                                {% for month in months %}
+                                    <option value="{{ month }}" {% if selected_month == month %}selected{% endif %}>{{ month }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button type="submit" class="btn btn-primary ms-2">Get Info</button>
+                        </div>
+                    </form>
                 </div>
+                <!-- Chart -->
                 <canvas id="myChart"></canvas>
                 <script>
-                  const ctx = document.getElementById('myChart');
+                  const ctx = document.getElementById('myChart').getContext('2d');
                   let myChart = new Chart(ctx, {
                       type: 'bar',
                       data: {
@@ -45,9 +61,13 @@
                       }
                   });
               
-                  document.getElementById('monthSelector').addEventListener('change', function() {
-                      const selectedMonth = this.value;
-                      fetch(`/dashboard?month=${selectedMonth}`, {
+                  // You can keep the filterData function for handling AJAX if needed
+                  function filterData() {
+                      const selectedYear = document.getElementById('yearSelector').value;
+                      const selectedMonth = document.getElementById('monthSelector').value;
+                      const query = selectedYear && selectedMonth ? `?year=${selectedYear}&month=${selectedMonth}` : '';
+                      
+                      fetch(`/dashboard${query}`, {
                           headers: {
                               'X-Requested-With': 'XMLHttpRequest'
                           }
@@ -59,13 +79,13 @@
                           myChart.update();
                       })
                       .catch(error => console.error('Error fetching data:', error));
-                  });
+                  }
               </script>
             </div>
         </div>
     </div>
 
-
+    <!-- Additional Sections for Yearly Breakup, Monthly Earnings, Top Products, etc. -->
     <div class="col-lg-4">
       <div class="row">
         <div class="col-lg-12">
@@ -84,9 +104,6 @@
                     <p class="text-dark me-1 fs-3 mb-0">+9%</p>
                     <p class="fs-3 mb-0">last year</p>
                   </div>
-                  <div class="d-flex align-items-center">
-                    
-                  </div>
                 </div>
                 <div class="col-4">
                   <div class="d-flex justify-content-center">
@@ -101,7 +118,7 @@
           <!-- Monthly Earnings -->
           <div class="card">
             <div class="card-body">
-              <div class="row alig n-items-start">
+              <div class="row align-items-start">
                 <div class="col-8">
                   <h5 class="card-title mb-9 fw-semibold"> Monthly Earnings </h5>
                   <h4 class="fw-semibold mb-3">₹{{total_sum_per_month}}</h4>
@@ -130,6 +147,8 @@
       </div>
     </div>
   </div>
+
+  <!-- Top 10 Products Section -->
   <div class="d-flex justify-content-center mt-5">
     <h3><b>Top 10 Products</b></h3>
   </div>
@@ -171,13 +190,14 @@
     <hr>
     {% endif %}
   </div>
-  <hr><br>
-  <div class="row justify-content-between ">
+
+  <!-- Top 3 Category and Top 5 Brand Sections -->
+  <div class="row justify-content-between">
     <div class="col-lg-4 d-flex align-items-stretch">
       <div class="card w-100">
         <div class="card-body p-4">
           <div class="mb-4">
-            <h5 class="card-title fw-semibold text-center ">Top 3 Category</h5>
+            <h5 class="card-title fw-semibold text-center">Top 3 Category</h5>
             <hr>
           </div>
           {% if top_3_category %}
@@ -194,7 +214,6 @@
           </ul>
           <hr>
           {% endfor %}
-          
           {% else %}
           <div class="timeline-desc fs-3 text-dark mt-n1 text-center "> No Data Found</div>
           {% endif %}
@@ -205,11 +224,10 @@
       <div class="card w-100">
         <div class="card-body p-4">
           <div class="mb-4">
-            <h5 class="card-title fw-semibold text-center ">Top 5 Brand </h5>
+            <h5 class="card-title fw-semibold text-center">Top 5 Brand</h5>
             <hr>
           </div>
           {% for brand in top_5_brand %}
-
           <ul class="timeline-widget mb-0 position-relative mb-n5">
             <li class="timeline-item d-flex position-relative overflow-hidden">
               <div class="timeline-time text-dark flex-shrink-0 text-end">{{brand.product__brand__name}}</div>
@@ -221,15 +239,10 @@
             </li>
           </ul>
           <hr>
-
           {% endfor %}
-          
         </div>
       </div>
     </div>
   </div>
 </div>
-
-
 {% endblock content %}
-
