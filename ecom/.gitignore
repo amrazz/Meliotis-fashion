@@ -1,33 +1,18 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pyc
-
-# Virtual environment
+# Ignore Python virtual environment
 env/
 venv/
-ENV/
-env.bak/
-*.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.db
+*.sqlite3
+*.log
 
-# VS Code
+# VS Code settings
 .vscode/
 
-# Django stuff
-*.log
-local_settings.py
-media/
-staticfiles/
-
-# Pytest
-.cache/
-
-# Migrations (optional – only if you want to ignore them)
-# **/*/migrations/
-# !**/migrations/__init__.py
-
-# MacOS and Windows system files
+# OS files
 .DS_Store
 Thumbs.db
