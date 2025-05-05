@@ -1,2 +1,18 @@
-# created by virtualenv automatically
+# Ignore Python virtual environment
+env/
+venv/
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.db
+*.sqlite3
+*.log
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
