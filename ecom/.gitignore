@@ -9,6 +9,7 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+.env
 
 # VS Code settings
 .vscode/
